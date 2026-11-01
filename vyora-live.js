@@ -1,6 +1,6 @@
 /* VYORA live features: Supabase video publishing, feed, community polls and premiere schedule. */
 (() => {
-  const client = window.supabaseClient;
+  const client = supabaseClient;
   if (!client) return;
   const $ = (id) => document.getElementById(id);
   const message = (text) => {
