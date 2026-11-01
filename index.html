@@ -1,0 +1,211 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b0b0f">
+<title>VYORA — Watch. Create. Connect.</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0b0b0f;--panel:#15151c;--soft:#22222c;--text:#f5f5f7;--muted:#a0a0ae;--accent:#8b5cf6}
+body{font-family:Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input{font:inherit}
+button{cursor:pointer}
+.top{height:68px;position:fixed;top:0;left:0;right:0;z-index:10;background:#0b0b0ff2;backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between;padding:0 25px;border-bottom:1px solid #292934}
+.brand{display:flex;align-items:center;gap:10px;font-size:23px;font-weight:900;letter-spacing:1px}
+.logo{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#a78bfa,#6d28d9);display:grid;place-items:center;font-size:20px;color:white}
+.search{display:flex;align-items:center;width:min(440px,40vw);background:#191920;border:1px solid #343440;border-radius:30px;overflow:hidden}
+.search input{background:none;border:0;outline:0;color:white;padding:12px 18px;flex:1;min-width:0}
+.search button{border:0;background:#292934;color:white;padding:12px 18px}
+.top-actions{display:flex;gap:12px;align-items:center}
+.top-actions button,.menu{background:#20202a;border:0;color:white;border-radius:50%;width:39px;height:39px;font-size:18px}
+.avatar{background:#8b5cf6!important;font-weight:bold}
+.sidebar{position:fixed;top:68px;bottom:0;left:0;width:225px;padding:22px 13px;background:#101016;border-right:1px solid #292934;overflow:auto}
+.nav{display:flex;gap:14px;align-items:center;padding:13px 15px;border-radius:11px;color:#c9c9d2;margin-bottom:5px;cursor:pointer}
+.nav:hover,.nav.active{background:#292433;color:white}
+.nav span:first-child{font-size:19px;width:22px}
+.side-title{color:#858594;font-size:11px;font-weight:bold;margin:25px 14px 10px}
+main{margin-left:225px;padding:95px 30px 40px}
+.chips{display:flex;gap:10px;overflow-x:auto;padding:0 0 24px;scrollbar-width:none}
+.chip{white-space:nowrap;background:#20202a;border:1px solid #30303b;color:#ddd;padding:9px 17px;border-radius:9px}
+.chip.active,.chip:hover{background:#f2f0f8;color:#17131f}
+.hero{background:linear-gradient(110deg,#241746,#17132a 55%,#12121a);border:1px solid #42315f;border-radius:20px;padding:30px;margin-bottom:32px;min-height:190px;display:flex;justify-content:space-between;align-items:center;gap:20px;overflow:hidden}
+.hero h1{font-size:clamp(27px,4vw,42px);margin:12px 0}
+.hero p{color:#c1b8d6;line-height:1.6}
+.hero button{margin-top:18px;border:0;border-radius:9px;padding:12px 20px;background:#a78bfa;color:#160e28;font-weight:bold}
+.hero-art{font-size:90px;opacity:.8}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin:25px 0 18px}
+.section-head h2{font-size:21px}
+.section-head small{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:27px 19px}
+.video{min-width:0;cursor:pointer}
+.thumb{position:relative;width:100%;aspect-ratio:16/9;border-radius:13px;overflow:hidden;background:#242431}
+.thumb img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.video:hover .thumb img{transform:scale(1.04)}
+.duration{position:absolute;right:9px;bottom:9px;background:#000c;padding:4px 7px;border-radius:5px;font-size:11px}
+.vinfo{display:flex;gap:11px;margin-top:12px}
+.channel-avatar{width:37px;height:37px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#312e81);display:grid;place-items:center;font-weight:bold}
+.vinfo h3{font-size:14px;line-height:1.45;margin-bottom:6px}
+.vinfo p{font-size:12px;color:var(--muted);line-height:1.7}
+.modal{display:none;position:fixed;inset:0;background:#000e;z-index:30;align-items:center;justify-content:center;padding:20px}
+.modal.show{display:flex}
+.player-box{background:#17171f;border:1px solid #393945;border-radius:16px;width:min(850px,100%);padding:15px}
+.player-box video{width:100%;max-height:65vh;background:black;border-radius:10px}
+.player-head{display:flex;justify-content:space-between;padding:5px 2px 15px;align-items:center}
+.close{background:#333;color:white;border:0;border-radius:8px;padding:8px 13px}
+footer{color:#777;font-size:12px;margin-top:55px;padding:20px 0;border-top:1px solid #282832}
+.empty{display:none;color:#aaa;text-align:center;padding:60px}
+@media(max-width:1100px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){
+.top{padding:0 12px;height:60px}.brand{font-size:19px}.search{width:auto;flex:1;margin:0 10px}.search input{width:50px;padding:10px}.search button{padding:10px}.top-actions button:not(.avatar){display:none}
+.sidebar{width:65px;top:60px;padding:15px 7px}.nav{justify-content:center;padding:13px 5px}.nav span:last-child,.side-title{display:none}
+main{margin-left:65px;padding:80px 13px 30px}.grid{grid-template-columns:1fr;gap:25px}.hero{padding:22px;min-height:165px}.hero-art{font-size:55px}.hero p{font-size:13px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><div class="logo">V</div>VYORA</div>
+  <div class="search"><input id="search" placeholder="Search videos..." oninput="filterVideos()"><button onclick="filterVideos()">⌕</button></div>
+  <div class="top-actions">
+    <button title="Upload" onclick="document.getElementById('upload').click()">＋</button>
+    <button class="avatar">U</button>
+  </div>
+</header>
+
+<aside class="sidebar">
+  <div class="nav active" onclick="setNav(this,'all')"><span>⌂</span><span>Home</span></div>
+  <div class="nav" onclick="setNav(this,'all')"><span>🔥</span><span>Trending</span></div>
+  <div class="nav" onclick="setNav(this,'music')"><span>♫</span><span>Music</span></div>
+  <div class="nav" onclick="setNav(this,'gaming')"><span>🎮</span><span>Gaming</span></div>
+  <div class="nav" onclick="setNav(this,'education')"><span>▤</span><span>Education</span></div>
+  <div class="side-title">YOUR SPACE</div>
+  <div class="nav"><span>◷</span><span>History</span></div>
+  <div class="nav"><span>♡</span><span>Liked videos</span></div>
+  <div class="nav"><span>▣</span><span>Subscriptions</span></div>
+  <div class="side-title">CREATE</div>
+  <div class="nav" onclick="document.getElementById('upload').click()"><span>＋</span><span>Upload video</span></div>
+</aside>
+
+<main>
+  <div class="chips">
+    <button class="chip active" onclick="setCategory('all',this)">All</button>
+    <button class="chip" onclick="setCategory('music',this)">Music</button>
+    <button class="chip" onclick="setCategory('gaming',this)">Gaming</button>
+    <button class="chip" onclick="setCategory('education',this)">Education</button>
+    <button class="chip" onclick="setCategory('technology',this)">Technology</button>
+    <button class="chip" onclick="setCategory('travel',this)">Travel</button>
+    <button class="chip" onclick="setCategory('entertainment',this)">Entertainment</button>
+  </div>
+
+  <section class="hero">
+    <div>
+      <div style="color:#c4b5fd;font-weight:bold;letter-spacing:2px;font-size:12px">WELCOME TO VYORA</div>
+      <h1>Your world. Your videos.</h1>
+      <p>Discover videos, share your creativity and connect with the world.</p>
+      <button onclick="document.getElementById('upload').click()">＋ Start creating</button>
+    </div>
+    <div class="hero-art">▶</div>
+  </section>
+
+  <div class="section-head"><h2>Discover videos</h2><small>Made for curious minds</small></div>
+  <div class="grid" id="grid">
+    <article class="video" data-category="technology" data-title="The future of technology">
+      <div class="thumb"><img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=700" alt="Technology"><span class="duration">08:24</span></div>
+      <div class="vinfo"><div class="channel-avatar">T</div><div><h3>The Future of Technology — What's Coming Next?</h3><p>Tech World</p><p>125K views · 2 days ago</p></div></div>
+    </article>
+    <article class="video" data-category="travel" data-title="beautiful ocean travel">
+      <div class="thumb"><img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=700" alt="Ocean"><span class="duration">12:05</span></div>
+      <div class="vinfo"><div class="channel-avatar">W</div><div><h3>Beautiful Ocean Views — A Journey to Remember</h3><p>Wander More</p><p>82K views · 1 day ago</p></div></div>
+    </article>
+    <article class="video" data-category="gaming" data-title="gaming adventure">
+      <div class="thumb"><img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?w=700" alt="Gaming"><span class="duration">18:40</span></div>
+      <div class="vinfo"><div class="channel-avatar">G</div><div><h3>Epic Gaming Moments — Best Adventures</h3><p>Game Zone</p><p>230K views · 4 days ago</p></div></div>
+    </article>
+    <article class="video" data-category="music" data-title="music studio">
+      <div class="thumb"><img src="https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=700" alt="Music"><span class="duration">04:15</span></div>
+      <div class="vinfo"><div class="channel-avatar">M</div><div><h3>Inside the Music Studio — Creative Sounds</h3><p>Music House</p><p>54K views · 3 days ago</p></div></div>
+    </article>
+    <article class="video" data-category="education" data-title="learn something new">
+      <div class="thumb"><img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=700" alt="Learning"><span class="duration">10:32</span></div>
+      <div class="vinfo"><div class="channel-avatar">L</div><div><h3>Learn Something New Every Day</h3><p>Learn Daily</p><p>91K views · 5 days ago</p></div></div>
+    </article>
+    <article class="video" data-category="entertainment" data-title="creative filmmaking">
+      <div class="thumb"><img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?w=700" alt="Film"><span class="duration">15:08</span></div>
+      <div class="vinfo"><div class="channel-avatar">F</div><div><h3>Creative Filmmaking — Behind the Scenes</h3><p>Film Studio</p><p>38K views · 6 days ago</p></div></div>
+    </article>
+  </div>
+  <div class="empty" id="empty">No videos found. Try another search.</div>
+  <footer>© 2026 VYORA. Watch. Create. Connect.</footer>
+</main>
+
+<input type="file" id="upload" accept="video/*" hidden onchange="uploadVideo(event)">
+
+<div class="modal" id="modal" onclick="if(event.target===this)closePlayer()">
+ <div class="player-box">
+  <div class="player-head"><strong id="playerTitle">VYORA Player</strong><button class="close" onclick="closePlayer()">✕ Close</button></div>
+  <video id="player" controls playsinline></video>
+  <p style="color:#aaa;font-size:12px;margin:12px 2px">VYORA Video Preview</p>
+ </div>
+</div>
+
+<script>
+let category='all';
+function filterVideos(){
+ const q=document.getElementById('search').value.toLowerCase();
+ let count=0;
+ document.querySelectorAll('.video').forEach(v=>{
+  const match=(category==='all'||v.dataset.category===category)&&v.dataset.title.includes(q);
+  v.style.display=match?'':'none';
+  if(match)count++;
+ });
+ document.getElementById('empty').style.display=count?'none':'block';
+}
+function setCategory(c,btn){
+ category=c;
+ document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+ if(btn)btn.classList.add('active');
+ filterVideos();
+}
+function setNav(btn,c){
+ document.querySelectorAll('.sidebar .nav').forEach(x=>x.classList.remove('active'));
+ btn.classList.add('active');
+ category=c;
+ filterVideos();
+}
+function uploadVideo(e){
+ const file=e.target.files[0];
+ if(!file)return;
+ const url=URL.createObjectURL(file);
+ const card=document.createElement('article');
+ card.className='video';
+ card.dataset.category='all';
+ card.dataset.title=file.name.toLowerCase();
+ const name=file.name.replace(/\.[^/.]+$/,'');
+ card.innerHTML=`<div class="thumb" style="background:#272337;display:grid;place-items:center"><span style="font-size:55px">▶</span><span class="duration">LOCAL</span></div><div class="vinfo"><div class="channel-avatar">U</div><div><h3>${escapeHTML(name)}</h3><p>Your local upload preview</p><p>Not published online</p></div></div>`;
+ card.querySelector('.thumb').onclick=()=>openPlayer(url,name);
+ document.getElementById('grid').prepend(card);
+ filterVideos();
+ e.target.value='';
+}
+function escapeHTML(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function openPlayer(url,title){
+ document.getElementById('player').src=url;
+ document.getElementById('playerTitle').textContent=title;
+ document.getElementById('modal').classList.add('show');
+ document.getElementById('player').play().catch(()=>{});
+}
+function closePlayer(){
+ const p=document.getElementById('player');
+ p.pause();p.removeAttribute('src');p.load();
+ document.getElementById('modal').classList.remove('show');
+}
+document.querySelectorAll('.video').forEach(card=>{
+ card.querySelector('.thumb').addEventListener('click',()=>{
+  openPlayer('https://www.w3schools.com/html/mov_bbb.mp4',card.dataset.title);
+ });
+});
+</script>
+</body>
+</html>
