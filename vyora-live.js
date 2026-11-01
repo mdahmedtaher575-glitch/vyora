@@ -70,7 +70,7 @@
       const user = await currentUser();
       if (!file.type.startsWith('video/')) throw new Error('একটি ভিডিও ফাইল বেছে নাও।');
       if (file.size > 200 * 1024 * 1024) throw new Error('ভিডিও সর্বোচ্চ ২০০ MB হতে পারবে।');
-      const title = window.prompt('ভিডিওর শিরোনাম লিখো:',file.name.replace(/\\.[^.]+$/,''));
+      const title = window.prompt('ভিডিওর শিরোনাম লিখো:',file.name.replace(/\.[^.]+$/,''));
       if (!title || !title.trim()) return;
       const { data: channel, error: channelError } = await client.from('channels').select('id').eq('owner_id',user.id).single();
       if (channelError || !channel) throw new Error('তোমার চ্যানেল পাওয়া যায়নি। আবার Sign in করো।');
