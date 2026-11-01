@@ -46,10 +46,7 @@ create table if not exists public.subscriptions (
   subscriber_id uuid not null references auth.users(id) on delete cascade,
   channel_id uuid not null references public.channels(id) on delete cascade,
   created_at timestamptz not null default now(),
-  primary key (subscriber_id, channel_id),
-  constraint no_self_subscription check (
-    subscriber_id <> (select owner_id from public.channels where id = channel_id)
-  )
+  primary key (subscriber_id, channel_id)
 );
 
 create table if not exists public.video_likes (
