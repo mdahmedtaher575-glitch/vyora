@@ -62,6 +62,17 @@ footer{color:#777;font-size:12px;margin-top:55px;padding:20px 0;border-top:1px s
 .sidebar{width:65px;top:60px;padding:15px 7px}.nav{justify-content:center;padding:13px 5px}.nav span:last-child,.side-title{display:none}
 main{margin-left:65px;padding:80px 13px 30px}.grid{grid-template-columns:1fr;gap:25px}.hero{padding:22px;min-height:165px}.hero-art{font-size:55px}.hero p{font-size:13px}
 }
+
+.auth-modal{display:none;position:fixed;inset:0;background:#000d;z-index:50;align-items:center;justify-content:center;padding:18px}
+.auth-modal.show{display:flex}
+.auth-card{width:min(420px,100%);background:#17171f;border:1px solid #393945;border-radius:18px;padding:26px}
+.auth-card h2{margin-bottom:8px}.auth-card p{color:#aaa;font-size:13px;line-height:1.5;margin-bottom:18px}
+.auth-card input{width:100%;padding:13px;margin:7px 0;background:#101016;border:1px solid #393945;border-radius:9px;color:white;outline:none}
+.auth-card .primary{width:100%;padding:13px;border:0;border-radius:9px;background:#8b5cf6;color:white;font-weight:bold;margin-top:12px}
+.auth-card .switch{background:none;border:0;color:#c4b5fd;margin-top:16px;width:100%}
+.auth-card .auth-close{float:right;background:#333;color:white;border:0;border-radius:7px;padding:6px 10px}
+#authMessage{min-height:20px;color:#c4b5fd;font-size:13px;margin-top:10px}
+
 </style>
 </head>
 <body>
@@ -70,7 +81,7 @@ main{margin-left:65px;padding:80px 13px 30px}.grid{grid-template-columns:1fr;gap
   <div class="search"><input id="search" placeholder="Search videos..." oninput="filterVideos()"><button onclick="filterVideos()">⌕</button></div>
   <div class="top-actions">
     <button title="Upload" onclick="document.getElementById('upload').click()">＋</button>
-    <button class="avatar">U</button>
+    <button class="avatar" id="accountButton" onclick="openAuth()">Sign in</button>
   </div>
 </header>
 
@@ -142,6 +153,22 @@ main{margin-left:65px;padding:80px 13px 30px}.grid{grid-template-columns:1fr;gap
 
 <input type="file" id="upload" accept="video/*" hidden onchange="uploadVideo(event)">
 
+<div class="auth-modal" id="authModal" onclick="if(event.target===this)closeAuth()">
+ <div class="auth-card">
+  <button class="auth-close" onclick="closeAuth()">✕</button>
+  <h2 id="authTitle">Welcome to VYORA</h2>
+  <p id="authSubtitle">Sign in or create your free account.</p>
+  <form id="authForm">
+   <input id="authEmail" type="email" placeholder="Email address" autocomplete="email" required>
+   <input id="authPassword" type="password" placeholder="Password (at least 6 characters)" autocomplete="current-password" minlength="6" required>
+   <button class="primary" id="authSubmit" type="submit">Sign in</button>
+  </form>
+  <button class="switch" id="authSwitch" onclick="toggleAuthMode()">New here? Create an account</button>
+  <button class="switch" id="authSignOut" style="display:none" onclick="signOutUser()">Sign out</button>
+  <div id="authMessage" role="status"></div>
+ </div>
+</div>
+
 <div class="modal" id="modal" onclick="if(event.target===this)closePlayer()">
  <div class="player-box">
   <div class="player-head"><strong id="playerTitle">VYORA Player</strong><button class="close" onclick="closePlayer()">✕ Close</button></div>
@@ -150,7 +177,51 @@ main{margin-left:65px;padding:80px 13px 30px}.grid{grid-template-columns:1fr;gap
  </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL = 'https://ieahekjzhkejbhaifbtg.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_yakBmAeFp6c3Hqo0ckbbuA_X7Ocbb7E';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+let authMode = 'login';
+function authMessage(message){document.getElementById('authMessage').textContent=message;}
+function openAuth(){document.getElementById('authModal').classList.add('show');}
+function closeAuth(){document.getElementById('authModal').classList.remove('show');authMessage('');}
+function toggleAuthMode(){
+ authMode=authMode==='login'?'signup':'login';
+ document.getElementById('authTitle').textContent=authMode==='login'?'Welcome back':'Create your VYORA account';
+ document.getElementById('authSubtitle').textContent=authMode==='login'?'Sign in to continue.':'Sign up with your email and a password.';
+ document.getElementById('authSubmit').textContent=authMode==='login'?'Sign in':'Create account';
+ document.getElementById('authSwitch').textContent=authMode==='login'?'New here? Create an account':'Already have an account? Sign in';
+ document.getElementById('authPassword').autocomplete=authMode==='login'?'current-password':'new-password';
+ authMessage('');
+}
+async function refreshAuth(){
+ const {data:{session}}=await supabaseClient.auth.getSession();
+ const button=document.getElementById('accountButton');
+ button.textContent=session?.user?.email ? session.user.email.split('@')[0] : 'Sign in';
+ document.getElementById('authForm').style.display=session?'none':'block';
+ document.getElementById('authSwitch').style.display=session?'none':'block';
+ document.getElementById('authSignOut').style.display=session?'block':'none';
+ if(session){document.getElementById('authTitle').textContent='You are signed in';document.getElementById('authSubtitle').textContent=session.user.email;}
+}
+document.getElementById('authForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const email=document.getElementById('authEmail').value.trim();
+ const password=document.getElementById('authPassword').value;
+ document.getElementById('authSubmit').disabled=true;
+ authMessage('Please wait…');
+ let result;
+ if(authMode==='signup') result=await supabaseClient.auth.signUp({email,password});
+ else result=await supabaseClient.auth.signInWithPassword({email,password});
+ document.getElementById('authSubmit').disabled=false;
+ if(result.error){authMessage(result.error.message);return;}
+ if(authMode==='signup'&&!result.data.session){authMessage('Account created. Check your email to confirm, then sign in.');return;}
+ authMessage('Successfully signed in!');
+ await refreshAuth();
+});
+async function signOutUser(){await supabaseClient.auth.signOut();authMode='login';toggleAuthMode();await refreshAuth();authMessage('You have signed out.');}
+supabaseClient.auth.onAuthStateChange(()=>refreshAuth());
+refreshAuth();
 let category='all';
 function filterVideos(){
  const q=document.getElementById('search').value.toLowerCase();
